@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Valentine Week • A Page a Day</title>
+
+  <style>
+    :root{
+      /* Theme */
+      --pink:#ff2f7e;
+      --purple:#7b2cff;
+      --lav:#c8b6ff;
+      --softPink:#ffd6f5;
+      --white:#ffffff;
+
+      /* Glass (more transparent) */
+      --glass: rgba(255,255,255,.40);
+      --glass2: rgba(255,255,255,.58);
+      --stroke: rgba(255,255,255,.55);
+      --shadow: 0 26px 80px rgba(40,10,70,.18);
+
+      /* Text (dark, because background is light) */
+      --text: rgba(35, 18, 60, .92);
+      --muted: rgba(35, 18, 60, .72);
+
+      --radius: 28px;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    html{ overflow-x:hidden; }
+
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color: var(--text);
+
+      /* FIX: don't use body flex-centering (causes scroll issues) */
+      overflow-x:hidden;
+      overflow-y:auto;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+
+      /* White + Purple + Pink animated background (softer) */
+      background:
+        radial-gradient(900px 520px at 15% 20%, rgba(255,47,126,.16), transparent 60%),
+        radial-gradient(900px 520px at 85% 25%, rgba(123,44,255,.16), transparent 60%),
+        linear-gradient(135deg,
+          rgba(255,255,255,1),
+          rgba(255,214,245,.75),
+          rgba(200,182,255,.75),
+          rgba(255,255,255,1)
+        );
+      background-size: 300% 300%;
+      animation: bgMove 11s ease-in-out infinite alternate;
+      position:relative;
+    }
+
+    /* Extra soft veil for “transparent white” feel */
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background: rgba(255,255,255,.22);
+      z-index:0;
+    }
+
+    @keyframes bgMove{
+      0%   { background-position: 0% 35%; }
+      50%  { background-position: 100% 55%; }
+      100% { background-position: 0% 45%; }
+    }
+
+    /* soft glow blobs */
+    .blob{
+      position:fixed;
+      inset:-25vh -25vw;
+      pointer-events:none;
+      z-index:1;
+      background:
+        radial-gradient(900px 520px at 18% 18%, rgba(255,47,126,.16), transparent 58%),
+        radial-gradient(900px 520px at 85% 30%, rgba(123,44,255,.16), transparent 58%),
+        radial-gradient(900px 520px at 50% 90%, rgba(255,255,255,.20), transparent 60%);
+      filter: blur(26px);
+      opacity:.9;
+      animation: blobDrift 8s ease-in-out infinite alternate;
+    }
+    @keyframes blobDrift{
+      from{ transform: translate3d(-1.5%, -1.5%, 0) scale(1.02); }
+      to  { transform: translate3d( 1.5%,  1.0%, 0) scale(1.06); }
+    }
+
+    /* Floating background hearts layer */
+    .bgHearts{
+      position:fixed; inset:0;
+      pointer-events:none;
+      z-index:2;
+      overflow:hidden;
+    }
+    .bgHeart{
+      position:absolute;
+      bottom:-60px;
+      opacity:.18;
+      filter: blur(.2px);
+      will-change: transform;
+      animation: floatUp linear infinite;
+      user-select:none;
+    }
+    @keyframes floatUp{
+      from{ transform: translate3d(0, 0, 0) rotate(0deg); }
+      to  { transform: translate3d(0, -120vh, 0) rotate(18deg); }
+    }
+
+    /* main wrapper (scroll-safe) */
+    .wrap{
+      position:relative;
+      z-index:3;
+      width:min(980px, 92vw);
+      margin: 0 auto;
+      padding: clamp(18px, 4vw, 42px) 0 64px;
+      min-height: 100vh;
+
+      /* center-ish but still scrolls normally */
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      padding-top: clamp(16px, 5vh, 70px);
+    }
+
+    /* glass card */
+    .card{
+      width:100%;
+      background: linear-gradient(180deg, var(--glass2), var(--glass));
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      overflow:hidden;
+      position:relative;
+
+      transform: translateY(10px);
+      opacity: 0;
+      animation: cardIn .7s ease forwards;
+    }
+    @keyframes cardIn{
+      to { transform: translateY(0); opacity:1; }
+    }
+
+    .hero{
+      padding: clamp(18px, 4vw, 38px);
+      text-align:center;
+    }
+
+    /* HELLO MOTTU centered + bold + breathing + color shift */
+    .hello{
+      margin: 0 0 16px;
+      font-size: clamp(46px, 7vw, 86px);
+      line-height: 1.02;
+      letter-spacing: -0.02em;
+      font-weight: 900;
+
+      background: linear-gradient(90deg, var(--pink), var(--purple), var(--pink));
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+
+      animation: breathe 2.8s ease-in-out infinite, colorShift 5.5s linear infinite;
+      text-shadow: 0 18px 50px rgba(0,0,0,.08);
+    }
+    @keyframes breathe{
+      0%,100%{ transform: scale(1); }
+      50%{ transform: scale(1.06); }
+    }
+    @keyframes colorShift{
+      0%{ background-position: 0% 50%; }
+      100%{ background-position: 100% 50%; }
+    }
+
+    /* Text base */
+    .text{
+      margin:0;
+      font-size: clamp(16px, 2.2vw, 18px);
+      line-height: 1.9;
+      color: var(--muted);
+      white-space: pre-line;
+
+      opacity:0;
+      transform: translateY(10px);
+      animation: fadeUp .85s ease forwards;
+      animation-delay: .12s;
+    }
+    @keyframes fadeUp{
+      to { opacity:1; transform: translateY(0); }
+    }
+
+    .bigLine{
+      display:block;
+      font-size: clamp(18px, 2.4vw, 22px);
+      font-weight: 750;
+      color: rgba(35,18,60,.86);
+      margin-bottom: 6px;
+    }
+
+    .highlight{
+      display:inline-block;
+      font-weight: 900;
+      background: linear-gradient(90deg, var(--pink), var(--purple));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,.06));
+      animation: hiGlow 2.6s ease-in-out infinite;
+    }
+    @keyframes hiGlow{
+      0%,100%{ transform: translateY(0); opacity:.96; }
+      50%{ transform: translateY(-1px); opacity:1; }
+    }
+
+    .quote{
+      margin-top: 8px;
+      font-size: clamp(18px, 2.6vw, 24px);
+      font-weight: 800;
+      color: rgba(35,18,60,.88);
+      line-height: 1.55;
+    }
+
+    .divider{
+      height:1px;
+      margin: 22px 0 18px;
+      background: linear-gradient(90deg, transparent, rgba(35,18,60,.20), transparent);
+      opacity:.9;
+    }
+
+    /* CTA button */
+    .cta{
+      display:inline-flex;
+      gap:10px;
+      align-items:center;
+      justify-content:center;
+      color: white;
+      font-weight: 900;
+      text-decoration:none;
+      padding: 14px 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.70);
+
+      background: linear-gradient(90deg, var(--pink), var(--purple));
+      box-shadow: 0 14px 40px rgba(123,44,255,.20);
+
+      transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+      user-select:none;
+      cursor: pointer;
+      position:relative;
+      overflow:hidden;
+    }
+    .cta:hover{
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 18px 55px rgba(255,47,126,.22);
+      filter: brightness(1.05);
+    }
+    .cta:active{
+      transform: translateY(0) scale(.995);
+    }
+    .arrow{ font-size: 18px; opacity:.95; transform: translateY(1px); }
+
+    /* Week section */
+    .hidden{ display:none !important; }
+
+    .week{
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.52); /* more transparent */
+      border: 1px solid rgba(255,255,255,.70);
+      box-shadow: 0 18px 60px rgba(40,10,70,.16);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transform: translateY(10px);
+      opacity:0;
+      animation: weekIn .55s ease forwards;
+      text-align:left;
+    }
+    @keyframes weekIn{
+      to { transform: translateY(0); opacity:1; }
+    }
+
+    .weekHead{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px 16px;
+      align-items:flex-end;
+      justify-content:space-between;
+      margin-bottom: 14px;
+    }
+
+    .weekTitle{
+      margin:0;
+      color: rgba(35,18,60,.92);
+      font-size: 18px;
+      letter-spacing:.2px;
+      font-weight: 900;
+    }
+
+    .weekMeta{
+      margin:0;
+      color: rgba(35,18,60,.74);
+      font-size: 13px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(35,18,60,.12);
+      background: rgba(255,255,255,.50);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    @media (max-width: 840px){
+      .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    .day{
+      border-radius: 18px;
+      border:1px solid rgba(35,18,60,.10);
+      background: rgba(255,255,255,.50); /* more transparent */
+      padding: 14px;
+      min-height: 118px;
+      position:relative;
+      overflow:hidden;
+      transition: transform .18s ease, background .18s ease, border-color .18s ease;
+    }
+    .day:hover{
+      transform: translateY(-2px);
+      background: rgba(255,255,255,.68);
+      border-color: rgba(35,18,60,.14);
+    }
+
+    .date{
+      color: rgba(35,18,60,.92);
+      font-weight: 900;
+      letter-spacing:.2px;
+      font-size: 14px;
+    }
+    .status{
+      margin-top: 10px;
+      color: rgba(35,18,60,.70);
+      font-size: 13px;
+      line-height:1.35;
+      position:relative;
+      z-index:2;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      margin-top: 10px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: rgba(35,18,60,.88);
+      border:1px solid rgba(35,18,60,.12);
+      background: rgba(255,255,255,.55);
+    }
+
+    .locked::after{
+      content:"";
+      position:absolute; inset:0;
+      background: linear-gradient(180deg, rgba(255,255,255,.26), rgba(0,0,0,.06));
+      pointer-events:none;
+    }
+
+    .lockIcon{
+      position:absolute;
+      right: 12px;
+      top: 12px;
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      display:grid;
+      place-items:center;
+      border:1px solid rgba(35,18,60,.10);
+      background: rgba(255,255,255,.55);
+      color: rgba(35,18,60,.85);
+      font-size: 16px;
+      z-index:3;
+      box-shadow: 0 10px 24px rgba(40,10,70,.10);
+    }
+
+    .openLink{
+      display:inline-block;
+      margin-top: 10px;
+      color: rgba(35,18,60,.92);
+      font-weight: 900;
+      text-decoration:none;
+      border-bottom: 1px dashed rgba(35,18,60,.40);
+      padding-bottom: 2px;
+      position:relative;
+      z-index:3;
+      transition: opacity .15s ease, transform .15s ease;
+    }
+    .openLink:hover{
+      opacity: .95;
+      transform: translateY(-1px);
+    }
+
+    /* Cursor hearts */
+    .cursor-heart{
+      position:fixed;
+      left:0; top:0;
+      pointer-events:none;
+      z-index: 9999;
+      font-size: 16px;
+      will-change: transform, opacity;
+      animation: fling 900ms ease-out forwards;
+      filter: drop-shadow(0 8px 18px rgba(40,10,70,.18));
+      user-select:none;
+    }
+    @keyframes fling{
+      0%   { transform: translate3d(var(--x), var(--y), 0) scale(1); opacity:.95; }
+      70%  { opacity:.55; }
+      100% { transform: translate3d(calc(var(--x) + var(--dx)), calc(var(--y) + var(--dy)), 0) scale(.65); opacity:0; }
+    }
+
+    ::selection{ background: rgba(255,47,126,.18); }
+  </style>
+</head>
+
+<body>
+  <div class="blob"></div>
+  <div class="bgHearts" id="bgHearts"></div>
+
+  <main class="wrap">
+    <section class="card hero">
+      <h1 class="hello">hello mottu</h1>
+
+      <p class="text" id="mainText">
+<span class="bigLine">this is the time to celebrate our togetherness.</span>
+And with each passing day,
+So, here’s a page a day…
+<span class="highlight">just for us 💫</span>
+
+This isn’t about starting something new.
+<span class="bigLine">It’s about celebrating what already exists 💖</span>
+I made something for you… come back daily 😌
+
+<span class="quote">Some Valentines aren’t asked for.
+They’re chosen again.</span>
+      </p>
+
+      <div class="divider"></div>
+
+      <a class="cta" href="#" id="continueLink">
+        Let’s continue the journey <span class="arrow">↗</span>
+      </a>
+
+      <section class="week hidden" id="weekSection" aria-live="polite">
+        <div class="weekHead">
+          <h2 class="weekTitle">Valentine Week (7–14 Feb)</h2>
+          <p class="weekMeta">
+            <span class="pill">🕒 IST time</span>
+            <span class="pill" id="todayPill">Today: —</span>
+            <span class="pill" id="nextPill">Next unlock: —</span>
+          </p>
+        </div>
+
+        <div class="grid" id="grid"></div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    // ---------- Floating background hearts ----------
+    (function spawnBGHearts(){
+      const container = document.getElementById('bgHearts');
+      const symbols = ["💗","💖","💕","💞","💘","❤️","🩷"];
+      const count = 28;
+
+      for(let i=0;i<count;i++){
+        const el = document.createElement('div');
+        el.className = 'bgHeart';
+        el.textContent = symbols[Math.floor(Math.random()*symbols.length)];
+
+        const size = 14 + Math.random()*18;
+        el.style.fontSize = size + 'px';
+        el.style.left = (Math.random()*100) + 'vw';
+        el.style.animationDuration = (10 + Math.random()*18) + 's';
+        el.style.animationDelay = (-Math.random()*18) + 's';
+        el.style.opacity = (0.08 + Math.random()*0.18).toFixed(2);
+
+        const rot = (Math.random()*30 - 15).toFixed(1);
+        el.style.transform = `rotate(${rot}deg)`;
+        container.appendChild(el);
+      }
+    })();
+
+    // ---------- Cursor hearts trail ----------
+    (function cursorHearts(){
+      const emojis = ["💗","💖","💕","💘","🩷"];
+      let last = 0;
+
+      window.addEventListener('mousemove', (e)=>{
+        const now = performance.now();
+        if(now - last < 35) return;
+        last = now;
+
+        const h = document.createElement('div');
+        h.className = 'cursor-heart';
+        h.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+
+        h.style.setProperty('--x', (e.clientX - 6) + 'px');
+        h.style.setProperty('--y', (e.clientY - 14) + 'px');
+
+        const dx = (Math.random()*60 - 30).toFixed(0) + 'px';
+        const dy = (-(50 + Math.random()*70)).toFixed(0) + 'px';
+        h.style.setProperty('--dx', dx);
+        h.style.setProperty('--dy', dy);
+
+        h.style.fontSize = (14 + Math.random()*10).toFixed(0) + 'px';
+
+        document.body.appendChild(h);
+        setTimeout(()=> h.remove(), 950);
+      });
+    })();
+
+    // ---------- Time helpers (Asia/Kolkata) ----------
+    function nowIST(){
+      return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    }
+    function fmtDateIST(d){
+      return d.toLocaleDateString('en-IN', { timeZone:'Asia/Kolkata', day:'2-digit', month:'short', year:'numeric' });
+    }
+    function pad(n){ return String(n).padStart(2,'0'); }
+    function msToHMS(ms){
+      if(ms < 0) ms = 0;
+      const totalSec = Math.floor(ms/1000);
+      const h = Math.floor(totalSec/3600);
+      const m = Math.floor((totalSec%3600)/60);
+      const s = totalSec%60;
+      return `${pad(h)}:${pad(m)}:${pad(s)}`;
+    }
+    function getWeekYear(n){
+      const y = n.getFullYear();
+      const feb14 = new Date(`${y}-02-14T23:59:59`);
+      if(n > feb14) return y + 1;
+      return y;
+    }
+    function buildWeekDates(year){
+      const days = [];
+      for(let d=7; d<=14; d++){
+        days.push({ day: d, date: new Date(`${year}-02-${pad(d)}T00:00:00`) });
+      }
+      return days;
+    }
+
+    const continueLink = document.getElementById('continueLink');
+    const weekSection  = document.getElementById('weekSection');
+    const gridEl       = document.getElementById('grid');
+    const todayPill    = document.getElementById('todayPill');
+    const nextPill     = document.getElementById('nextPill');
+
+    let timer = null;
+
+    function renderWeek(){
+      const now = nowIST();
+      const year = getWeekYear(now);
+      const week = buildWeekDates(year);
+
+      todayPill.textContent = `Today: ${fmtDateIST(now)}`;
+
+      let nearestFuture = null;
+      for(const w of week){
+        if(now < w.date){ nearestFuture = w.date; break; }
+      }
+      nextPill.textContent = !nearestFuture
+        ? `Next unlock: All unlocked ✅`
+        : `Next unlock: ${fmtDateIST(nearestFuture)}`;
+
+      gridEl.innerHTML = '';
+
+      for(const item of week){
+        const start = item.date;
+        const end   = new Date(start.getTime() + 24*60*60*1000);
+
+        const card = document.createElement('div');
+        card.className = 'day';
+
+        const lock = document.createElement('div');
+        lock.className = 'lockIcon';
+
+        const title = document.createElement('div');
+        title.className = 'date';
+        title.textContent = `Feb ${item.day}`;
+
+        const status = document.createElement('div');
+        status.className = 'status';
+
+        const isPast  = now >= end;
+        const isToday = now >= start && now < end;
+        const isFuture = now < start;
+
+        const isNext = isFuture && nearestFuture && start.getTime() === nearestFuture.getTime();
+
+        if(isPast || isToday){
+          lock.textContent = '🔓';
+          status.innerHTML = isToday
+            ? `Unlocked today 😌<div class="badge">Available now</div>`
+            : `Unlocked ✅<div class="badge">You can open it</div>`;
+
+          const a = document.createElement('a');
+          a.href = '#';
+          a.className = 'openLink';
+          a.textContent = 'Open';
+          a.addEventListener('click', (e)=>{
+            e.preventDefault();
+            alert(`This is the Feb ${item.day} page placeholder.\nLater we’ll link it to your real page.`);
+          });
+
+          card.appendChild(lock);
+          card.appendChild(title);
+          card.appendChild(status);
+          card.appendChild(a);
+
+        } else if(isNext){
+          lock.textContent = '🔒';
+          card.classList.add('locked');
+          status.innerHTML = `Locked 🔒<div class="badge" data-countdown="1">Available in —</div>`;
+          card.appendChild(lock);
+          card.appendChild(title);
+          card.appendChild(status);
+
+        } else {
+          lock.textContent = '🔒';
+          card.classList.add('locked');
+          status.innerHTML = `Locked 🔒<div class="badge">Not yet</div>`;
+          card.appendChild(lock);
+          card.appendChild(title);
+          card.appendChild(status);
+        }
+
+        gridEl.appendChild(card);
+      }
+
+      updateCountdown();
+    }
+
+    function updateCountdown(){
+      const now = nowIST();
+      const year = getWeekYear(now);
+      const week = buildWeekDates(year);
+
+      let nearest = null;
+      for(const w of week){
+        if(now < w.date){ nearest = w.date; break; }
+      }
+
+      const badge = weekSection.querySelector('[data-countdown="1"]');
+      if(!badge){
+        if(timer){ clearInterval(timer); timer = null; }
+        return;
+      }
+
+      if(!nearest){
+        badge.textContent = 'Available now ✅';
+        if(timer){ clearInterval(timer); timer = null; }
+        return;
+      }
+
+      const ms = nearest.getTime() - now.getTime();
+      badge.textContent = `Available in ${msToHMS(ms)}`;
+
+      if(ms <= 0){
+        renderWeek();
+      }
+    }
+
+    continueLink.addEventListener('click', (e)=>{
+      e.preventDefault();
+      weekSection.classList.remove('hidden');
+      renderWeek();
+
+      if(timer) clearInterval(timer);
+      timer = setInterval(updateCountdown, 1000);
+
+      setTimeout(()=> weekSection.scrollIntoView({behavior:'smooth', block:'start'}), 120);
+    });
+  </script>
+</body>
+</html>

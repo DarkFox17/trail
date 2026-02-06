@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>7 Feb</title>
+
+  <style>
+    :root{
+      --pink:#ff2f7e;
+      --purple:#7b2cff;
+      --lav:#c8b6ff;
+      --softPink:#ffd6f5;
+      --ink: rgba(35,18,60,.92);
+      --muted: rgba(35,18,60,.74);
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    html{ overflow:hidden; }
+
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      overflow:hidden;
+      position:relative;
+
+      background:
+        radial-gradient(900px 520px at 15% 20%, rgba(255,47,126,.16), transparent 60%),
+        radial-gradient(900px 520px at 85% 25%, rgba(123,44,255,.16), transparent 60%),
+        linear-gradient(135deg,
+          rgba(255,255,255,1),
+          rgba(255,214,245,.80),
+          rgba(200,182,255,.80),
+          rgba(255,255,255,1)
+        );
+      background-size: 300% 300%;
+      animation: bgMove 11s ease-in-out infinite alternate;
+    }
+    @keyframes bgMove{
+      0%   { background-position: 0% 35%; }
+      50%  { background-position: 100% 55%; }
+      100% { background-position: 0% 45%; }
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background: rgba(255,255,255,.14);
+      transition: background .35s ease;
+      z-index:0;
+    }
+    body.bomb::before{ background: rgba(255,255,255,.26); }
+
+    /* Floating hearts background */
+    .bgHearts{
+      position:fixed; inset:0;
+      pointer-events:none;
+      z-index:1;
+      overflow:hidden;
+    }
+    .bgHeart{
+      position:absolute;
+      bottom:-70px;
+      opacity:.16;
+      will-change: transform;
+      animation: floatUp linear infinite;
+      user-select:none;
+      filter: blur(.15px);
+    }
+    @keyframes floatUp{
+      from{ transform: translate3d(0, 0, 0) rotate(0deg); }
+      to  { transform: translate3d(0, -125vh, 0) rotate(18deg); }
+    }
+
+    /* Cursor hearts */
+    .cursor-heart{
+      position:fixed;
+      left:0; top:0;
+      pointer-events:none;
+      z-index: 9999;
+      font-size: 16px;
+      will-change: transform, opacity;
+      animation: fling 900ms ease-out forwards;
+      filter: drop-shadow(0 8px 18px rgba(40,10,70,.14));
+      user-select:none;
+    }
+    @keyframes fling{
+      0%   { transform: translate3d(var(--x), var(--y), 0) scale(1); opacity:.92; }
+      70%  { opacity:.55; }
+      100% { transform: translate3d(calc(var(--x) + var(--dx)), calc(var(--y) + var(--dy)), 0) scale(.65); opacity:0; }
+    }
+
+    /* Roses layer */
+    .roseLayer{
+      position:fixed; inset:0;
+      pointer-events:none;
+      overflow:hidden;
+      z-index:2;
+    }
+
+    /* Tap roses (1–6): appear and stay UNTIL tap 7, then they fade out */
+    .rosePop{
+      position:absolute;
+      transform: translate(-50%, -50%) scale(.75);
+      opacity:0;
+      animation: popIn 520ms ease-out forwards;
+      user-select:none;
+      filter: drop-shadow(0 18px 32px rgba(255,47,126,.12));
+      will-change: transform, opacity;
+    }
+    @keyframes popIn{
+      to{ transform: translate(-50%, -50%) scale(1); opacity:1; }
+    }
+    .rosePop.vanish{
+      animation: vanish 420ms ease forwards !important;
+    }
+    @keyframes vanish{
+      to{ opacity:0; transform: translate(-50%, -50%) scale(.85); }
+    }
+
+    /* Bomb roses (7): continuous falling */
+    .roseBomb{
+      position:absolute;
+      top:-90px;
+      opacity:.95;
+      user-select:none;
+      filter: drop-shadow(0 18px 32px rgba(255,47,126,.10));
+      animation: bombFall linear forwards;
+      will-change: transform;
+    }
+    @keyframes bombFall{
+      from{ transform: translate3d(0, 0, 0) rotate(0deg); }
+      to{ transform: translate3d(0, 125vh, 0) rotate(320deg); }
+    }
+
+    /* Center UI (no box) */
+    .ui{
+      position:fixed;
+      inset:0;
+      z-index:3;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 24px;
+      text-align:center;
+    }
+    .stack{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap: 12px;
+      max-width: min(820px, 92vw);
+    }
+
+    .msg{
+      margin:0;
+      color: rgba(35,18,60,.86);
+      font-size: clamp(18px, 2.8vw, 28px);
+      line-height: 1.55;
+      min-height: 3.2em;
+      white-space: pre-line;
+      text-shadow: 0 14px 40px rgba(40,10,70,.10);
+    }
+
+    .caret::after{
+      content:"";
+      display:inline-block;
+      width: 10px;
+      height: 1.1em;
+      margin-left: 6px;
+      background: rgba(35,18,60,.38);
+      transform: translateY(2px);
+      animation: blink 900ms step-end infinite;
+    }
+    @keyframes blink{ 50%{ opacity:0; } }
+
+    .btn{
+      border: 0;
+      border-radius: 999px;
+      padding: 14px 22px;
+      cursor:pointer;
+      font-weight: 950;
+      letter-spacing:.2px;
+      color:#fff;
+      background: linear-gradient(90deg, var(--pink), var(--purple));
+      box-shadow: 0 18px 55px rgba(123,44,255,.18);
+      transition: transform .18s ease, filter .18s ease;
+      -webkit-tap-highlight-color: transparent;
+      user-select:none;
+      animation: btnBreathe 2.6s ease-in-out infinite;
+    }
+    @keyframes btnBreathe{
+      0%,100%{ transform: scale(1); }
+      50%{ transform: scale(1.035); }
+    }
+    .btn:hover{ transform: translateY(-2px) scale(1.05); filter: brightness(1.06); }
+    .btn:active{ transform: translateY(0) scale(.995); }
+
+    /* Final overlay */
+    .final{
+      position:fixed;
+      inset:0;
+      z-index:4;
+      display:grid;
+      place-items:center;
+      pointer-events:none;
+      opacity:0;
+      transform: scale(.98);
+      transition: opacity .55s ease, transform .55s ease;
+      padding: 24px;
+    }
+    .final.show{ opacity:1; transform: scale(1); }
+
+    .finalMain{
+      margin:0;
+      font-weight: 980;
+      font-size: clamp(28px, 4.8vw, 54px);
+      line-height: 1.12;
+      font-family: "Trebuchet MS", "Segoe UI", ui-sans-serif, system-ui;
+      letter-spacing: -0.02em;
+
+      background: linear-gradient(90deg, #ff2f7e, #7b2cff, #ff4d6d, #ff2f7e);
+      background-size: 260% 100%;
+      -webkit-background-clip:text;
+      background-clip:text;
+      color: transparent;
+
+      animation: shimmer 4.2s linear infinite, floaty 2.8s ease-in-out infinite;
+      text-shadow: 0 24px 80px rgba(40,10,70,.10);
+      text-align:center;
+    }
+    @keyframes shimmer{
+      0%{ background-position: 0% 50%; }
+      100%{ background-position: 100% 50%; }
+    }
+    @keyframes floaty{
+      0%,100%{ transform: translateY(0); }
+      50%{ transform: translateY(-4px); }
+    }
+
+    /* ✅ Grow + shrink + glow for "Happy Rose Day" */
+    .finalSub{
+      margin: 12px 0 0;
+      font-weight: 950;
+      font-size: clamp(18px, 3.2vw, 34px);
+      text-align:center;
+
+      /* gradient-ish text */
+      background: linear-gradient(90deg, rgba(236, 23, 140, 0.95), rgba(3, 136, 245, 0.95));
+      -webkit-background-clip:text;
+      background-clip:text;
+      color: transparent;
+
+      /* start hidden then animate in */
+      opacity:0;
+      transform: translateY(6px);
+      animation: subIn .65s ease forwards;
+      animation-delay: .25s;
+
+      /* pulsing glow */
+      filter: drop-shadow(0 0 0 rgba(255,47,126,0));
+    }
+    @keyframes subIn{
+      to{ opacity:1; transform: translateY(0); }
+    }
+
+    /* Pulse after it appears */
+    .final.show .finalSub{
+      animation:
+        subIn .65s ease forwards,
+        rosePulse 1.9s ease-in-out infinite;
+      animation-delay: .25s, 1.1s; /* pulse starts after appear */
+    }
+    @keyframes rosePulse{
+      0%,100%{
+        transform: translateY(0) scale(1);
+        filter:
+          drop-shadow(0 12px 28px rgba(255,47,126,.18))
+          drop-shadow(0 10px 24px rgba(123,44,255,.14));
+      }
+      50%{
+        transform: translateY(-1px) scale(1.06);
+        filter:
+          drop-shadow(0 18px 44px rgba(255,47,126,.28))
+          drop-shadow(0 16px 40px rgba(123,44,255,.22));
+      }
+    }
+
+    /* Home link bottom center */
+    .homeLink{
+      position:fixed;
+      left:50%;
+      bottom: 18px;
+      transform: translateX(-50%) translateY(12px);
+      z-index:5;
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .35s ease, transform .35s ease;
+      text-decoration:none;
+      font-weight: 950;
+      color: rgba(255,255,255,.96);
+      padding: 12px 16px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(255,47,126,.92), rgba(123,44,255,.86));
+      box-shadow: 0 18px 60px rgba(123,44,255,.18);
+    }
+    .homeLink.show{
+      opacity:1;
+      pointer-events:auto;
+      transform: translateX(-50%) translateY(0);
+    }
+    .homeLink:hover{ filter: brightness(1.05); }
+
+    @media (prefers-reduced-motion: reduce){
+      *{ animation:none !important; transition:none !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bgHearts" id="bgHearts"></div>
+  <div class="roseLayer" id="roseLayer"></div>
+
+  <div class="ui" id="ui">
+    <div class="stack">
+      <p class="msg caret" id="msg"></p>
+      <button class="btn" id="tapBtn">Click ME</button>
+    </div>
+  </div>
+
+  <div class="final" id="final">
+    <div>
+      <p class="finalMain">your are the ROSE of my LIFE</p>
+      <p class="finalSub">Happy Rose Day 🌹</p>
+    </div>
+  </div>
+
+  <a class="homeLink" id="homeLink" href="index.html">Home</a>
+
+  <script>
+    // Floating hearts background
+    (function spawnBGHearts(){
+      const container = document.getElementById('bgHearts');
+      const symbols = ["💗","💖","💕","💞","💘","❤️","🩷"];
+      const count = 26;
+      for(let i=0;i<count;i++){
+        const el = document.createElement('div');
+        el.className = 'bgHeart';
+        el.textContent = symbols[Math.floor(Math.random()*symbols.length)];
+        el.style.fontSize = (14 + Math.random()*18) + 'px';
+        el.style.left = (Math.random()*100) + 'vw';
+        el.style.animationDuration = (10 + Math.random()*18) + 's';
+        el.style.animationDelay = (-Math.random()*18) + 's';
+        el.style.opacity = (0.09 + Math.random()*0.20).toFixed(2);
+        el.style.transform = `rotate(${(Math.random()*30 - 15).toFixed(1)}deg)`;
+        container.appendChild(el);
+      }
+    })();
+
+    // Cursor hearts
+    (function cursorHearts(){
+      const emojis = ["💗","💖","💕","💘","🩷"];
+      let last = 0;
+      window.addEventListener('mousemove', (e)=>{
+        const now = performance.now();
+        if(now - last < 38) return;
+        last = now;
+
+        const h = document.createElement('div');
+        h.className = 'cursor-heart';
+        h.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+        h.style.setProperty('--x', (e.clientX - 6) + 'px');
+        h.style.setProperty('--y', (e.clientY - 14) + 'px');
+        h.style.setProperty('--dx', (Math.random()*60 - 30).toFixed(0) + 'px');
+        h.style.setProperty('--dy', (-(50 + Math.random()*70)).toFixed(0) + 'px');
+        h.style.fontSize = (14 + Math.random()*10).toFixed(0) + 'px';
+        document.body.appendChild(h);
+        setTimeout(()=> h.remove(), 950);
+      });
+    })();
+
+    // Typewriter
+    const msgEl = document.getElementById('msg');
+    let typingTimer = null;
+    function typewriter(text){
+      if(typingTimer) clearInterval(typingTimer);
+      msgEl.classList.add('caret');
+      msgEl.textContent = "";
+      let i = 0;
+      typingTimer = setInterval(()=>{
+        msgEl.textContent += text[i] || "";
+        i++;
+        if(i >= text.length){
+          clearInterval(typingTimer);
+          typingTimer = null;
+          setTimeout(()=> msgEl.classList.remove('caret'), 320);
+        }
+      }, 18);
+    }
+
+    // Tap logic
+    const roseLayer = document.getElementById('roseLayer');
+    const tapBtn = document.getElementById('tapBtn');
+    const ui = document.getElementById('ui');
+    const final = document.getElementById('final');
+    const homeLink = document.getElementById('homeLink');
+
+    const steps = [
+      { roses: 1, msg: "Every story begins quietly." },
+      { roses: 2, msg: "Ours began with a simple talk." },
+      { roses: 3, msg: "And somehow… it didn’t end there." },
+      { roses: 4, msg: "Through fights… and laughs." },
+      { roses: 5, msg: "But still… we stayed." },
+      { roses: 6, msg: "Some things aren’t temporary." }
+    ];
+
+    let tap = 0;
+    function rand(min, max){ return Math.random()*(max-min)+min; }
+
+    function placeRoses(count){
+      for(let i=0;i<count;i++){
+        const r = document.createElement('div');
+        r.className = 'rosePop';
+        r.textContent = "🌹";
+        r.style.fontSize = rand(56, 98).toFixed(0) + "px";
+
+        let x, y;
+        for(let tries=0; tries<12; tries++){
+          x = rand(6, 94);
+          y = rand(8, 92);
+          const inCenterX = x > 26 && x < 74;
+          const inCenterY = y > 28 && y < 76;
+          if(!(inCenterX && inCenterY)) break;
+        }
+        r.style.left = x.toFixed(2) + "vw";
+        r.style.top  = y.toFixed(2) + "vh";
+        roseLayer.appendChild(r);
+      }
+    }
+
+    function clearTapRoses(){
+      const pops = [...roseLayer.querySelectorAll('.rosePop')];
+      pops.forEach(el => el.classList.add('vanish'));
+      setTimeout(()=> pops.forEach(el => el.remove()), 460);
+    }
+
+    // Continuous bomb
+    let bombInterval = null;
+
+    function spawnBombRose(){
+      const r = document.createElement('div');
+      r.className = 'roseBomb';
+      r.textContent = "🌹";
+      r.style.fontSize = rand(50, 104).toFixed(0) + "px";
+
+      const fromSide = Math.random() < 0.35;
+      let left;
+      if(fromSide){
+        left = Math.random() < 0.5 ? rand(-10, 12) : rand(88, 110);
+      } else {
+        left = rand(-2, 102);
+      }
+      r.style.left = left.toFixed(2) + "vw";
+
+      const dur = rand(6.8, 12.8);
+      r.style.animationDuration = dur.toFixed(2) + "s";
+      r.style.transform = `rotate(${rand(-30, 30).toFixed(0)}deg)`;
+
+      roseLayer.appendChild(r);
+      setTimeout(()=> r.remove(), (dur + 0.4) * 1000);
+    }
+
+    function startBomb(){
+      document.body.classList.add('bomb');
+
+      const first = Math.floor(rand(40, 61));
+      for(let i=0;i<first;i++){
+        setTimeout(spawnBombRose, rand(0, 1200));
+      }
+
+      bombInterval = setInterval(()=>{
+        const n = Math.floor(rand(2, 5));
+        for(let i=0;i<n;i++) spawnBombRose();
+      }, 650);
+    }
+
+    typewriter("HELLO 😌");
+
+    tapBtn.addEventListener('click', ()=>{
+      tap++;
+
+      if(tap <= 6){
+        const step = steps[tap-1];
+        placeRoses(step.roses);
+        typewriter(step.msg);
+        return;
+      }
+
+      if(tap === 7){
+        clearTapRoses();
+        ui.style.display = "none";
+        startBomb();
+
+        setTimeout(()=> final.classList.add('show'), 450);
+        setTimeout(()=> homeLink.classList.add('show'), 950);
+      }
+    });
+  </script>
+</body>
+</html>
