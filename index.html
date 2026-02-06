@@ -483,220 +483,209 @@ They’re chosen again.</span>
   </main>
 
   <script>
-    // ---------- Floating background hearts ----------
-    (function spawnBGHearts(){
-      const container = document.getElementById('bgHearts');
-      const symbols = ["💗","💖","💕","💞","💘","❤️","🩷"];
-      const count = 28;
+  // ---------- Floating background hearts ----------
+  (function spawnBGHearts(){
+    const container = document.getElementById('bgHearts');
+    const symbols = ["💗","💖","💕","💞","💘","❤️","🩷"];
+    const count = 28;
 
-      for(let i=0;i<count;i++){
-        const el = document.createElement('div');
-        el.className = 'bgHeart';
-        el.textContent = symbols[Math.floor(Math.random()*symbols.length)];
+    for(let i=0;i<count;i++){
+      const el = document.createElement('div');
+      el.className = 'bgHeart';
+      el.textContent = symbols[Math.floor(Math.random()*symbols.length)];
 
-        const size = 14 + Math.random()*18;
-        el.style.fontSize = size + 'px';
-        el.style.left = (Math.random()*100) + 'vw';
-        el.style.animationDuration = (10 + Math.random()*18) + 's';
-        el.style.animationDelay = (-Math.random()*18) + 's';
-        el.style.opacity = (0.08 + Math.random()*0.18).toFixed(2);
+      const size = 14 + Math.random()*18;
+      el.style.fontSize = size + 'px';
+      el.style.left = (Math.random()*100) + 'vw';
+      el.style.animationDuration = (10 + Math.random()*18) + 's';
+      el.style.animationDelay = (-Math.random()*18) + 's';
+      el.style.opacity = (0.08 + Math.random()*0.18).toFixed(2);
 
-        const rot = (Math.random()*30 - 15).toFixed(1);
-        el.style.transform = `rotate(${rot}deg)`;
-        container.appendChild(el);
-      }
-    })();
-
-    // ---------- Cursor hearts trail ----------
-    (function cursorHearts(){
-      const emojis = ["💗","💖","💕","💘","🩷"];
-      let last = 0;
-
-      window.addEventListener('mousemove', (e)=>{
-        const now = performance.now();
-        if(now - last < 35) return;
-        last = now;
-
-        const h = document.createElement('div');
-        h.className = 'cursor-heart';
-        h.textContent = emojis[Math.floor(Math.random()*emojis.length)];
-
-        h.style.setProperty('--x', (e.clientX - 6) + 'px');
-        h.style.setProperty('--y', (e.clientY - 14) + 'px');
-
-        const dx = (Math.random()*60 - 30).toFixed(0) + 'px';
-        const dy = (-(50 + Math.random()*70)).toFixed(0) + 'px';
-        h.style.setProperty('--dx', dx);
-        h.style.setProperty('--dy', dy);
-
-        h.style.fontSize = (14 + Math.random()*10).toFixed(0) + 'px';
-
-        document.body.appendChild(h);
-        setTimeout(()=> h.remove(), 950);
-      });
-    })();
-
-    // ---------- Time helpers (Asia/Kolkata) ----------
-    function nowIST(){
-      return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+      const rot = (Math.random()*30 - 15).toFixed(1);
+      el.style.transform = `rotate(${rot}deg)`;
+      container.appendChild(el);
     }
-    function fmtDateIST(d){
-      return d.toLocaleDateString('en-IN', { timeZone:'Asia/Kolkata', day:'2-digit', month:'short', year:'numeric' });
+  })();
+
+  // ---------- Time helpers (Asia/Kolkata) ----------
+  function nowIST(){
+    return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+  }
+  function fmtDateIST(d){
+    return d.toLocaleDateString('en-IN', { timeZone:'Asia/Kolkata', day:'2-digit', month:'short', year:'numeric' });
+  }
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function msToHMS(ms){
+    if(ms < 0) ms = 0;
+    const totalSec = Math.floor(ms/1000);
+    const h = Math.floor(totalSec/3600);
+    const m = Math.floor((totalSec%3600)/60);
+    const s = totalSec%60;
+    return `${pad(h)}:${pad(m)}:${pad(s)}`;
+  }
+  function getWeekYear(n){
+    const y = n.getFullYear();
+    const feb14 = new Date(`${y}-02-14T23:59:59`);
+    if(n > feb14) return y + 1;
+    return y;
+  }
+  function buildWeekDates(year){
+    const days = [];
+    for(let d=7; d<=14; d++){
+      days.push({ day: d, date: new Date(`${year}-02-${pad(d)}T00:00:00`) });
     }
-    function pad(n){ return String(n).padStart(2,'0'); }
-    function msToHMS(ms){
-      if(ms < 0) ms = 0;
-      const totalSec = Math.floor(ms/1000);
-      const h = Math.floor(totalSec/3600);
-      const m = Math.floor((totalSec%3600)/60);
-      const s = totalSec%60;
-      return `${pad(h)}:${pad(m)}:${pad(s)}`;
+    return days;
+  }
+
+  const continueLink = document.getElementById('continueLink');
+  const weekSection  = document.getElementById('weekSection');
+  const gridEl       = document.getElementById('grid');
+  const todayPill    = document.getElementById('todayPill');
+  const nextPill     = document.getElementById('nextPill');
+
+  let timer = null;
+
+  function renderWeek(){
+    const now = nowIST();
+    const year = getWeekYear(now);
+    const week = buildWeekDates(year);
+
+    todayPill.textContent = `Today: ${fmtDateIST(now)}`;
+
+    let nearestFuture = null;
+    for(const w of week){
+      if(now < w.date){ nearestFuture = w.date; break; }
     }
-    function getWeekYear(n){
-      const y = n.getFullYear();
-      const feb14 = new Date(`${y}-02-14T23:59:59`);
-      if(n > feb14) return y + 1;
-      return y;
-    }
-    function buildWeekDates(year){
-      const days = [];
-      for(let d=7; d<=14; d++){
-        days.push({ day: d, date: new Date(`${year}-02-${pad(d)}T00:00:00`) });
-      }
-      return days;
-    }
+    nextPill.textContent = !nearestFuture
+      ? `Next unlock: All unlocked ✅`
+      : `Next unlock: ${fmtDateIST(nearestFuture)}`;
 
-    const continueLink = document.getElementById('continueLink');
-    const weekSection  = document.getElementById('weekSection');
-    const gridEl       = document.getElementById('grid');
-    const todayPill    = document.getElementById('todayPill');
-    const nextPill     = document.getElementById('nextPill');
+    gridEl.innerHTML = '';
 
-    let timer = null;
+    // 👇 Map your custom files here
+    const dayToFile = {
+      7: 'rose.html',
+      8: 'propose.html',
+      9:  'chocolate.html',
+      10: 'teddy.html',
+      11: 'promise.html',
+      12: 'hug.html',
+      13: 'kiss.html',
+      14: 'valentine.html'
+    };
 
-    function renderWeek(){
-      const now = nowIST();
-      const year = getWeekYear(now);
-      const week = buildWeekDates(year);
+    for(const item of week){
+      const start = item.date;
+      const end   = new Date(start.getTime() + 24*60*60*1000);
 
-      todayPill.textContent = `Today: ${fmtDateIST(now)}`;
+      const card = document.createElement('div');
+      card.className = 'day';
 
-      let nearestFuture = null;
-      for(const w of week){
-        if(now < w.date){ nearestFuture = w.date; break; }
-      }
-      nextPill.textContent = !nearestFuture
-        ? `Next unlock: All unlocked ✅`
-        : `Next unlock: ${fmtDateIST(nearestFuture)}`;
+      const lock = document.createElement('div');
+      lock.className = 'lockIcon';
 
-      gridEl.innerHTML = '';
+      const title = document.createElement('div');
+      title.className = 'date';
+      title.textContent = `Feb ${item.day}`;
 
-      for(const item of week){
-        const start = item.date;
-        const end   = new Date(start.getTime() + 24*60*60*1000);
+      const status = document.createElement('div');
+      status.className = 'status';
 
-        const card = document.createElement('div');
-        card.className = 'day';
+      const isPast  = now >= end;
+      const isToday = now >= start && now < end;
+      const isFuture = now < start;
 
-        const lock = document.createElement('div');
-        lock.className = 'lockIcon';
+      const isNext = isFuture && nearestFuture && start.getTime() === nearestFuture.getTime();
 
-        const title = document.createElement('div');
-        title.className = 'date';
-        title.textContent = `Feb ${item.day}`;
+      if(isPast || isToday){
+        lock.textContent = '🔓';
+        status.innerHTML = isToday
+          ? `Unlocked today 😌<div class="badge">Available now</div>`
+          : `Unlocked ✅<div class="badge">You can open it</div>`;
 
-        const status = document.createElement('div');
-        status.className = 'status';
+        const a = document.createElement('a');
+        a.className = 'openLink';
+        a.textContent = 'Open';
 
-        const isPast  = now >= end;
-        const isToday = now >= start && now < end;
-        const isFuture = now < start;
-
-        const isNext = isFuture && nearestFuture && start.getTime() === nearestFuture.getTime();
-
-        if(isPast || isToday){
-          lock.textContent = '🔓';
-          status.innerHTML = isToday
-            ? `Unlocked today 😌<div class="badge">Available now</div>`
-            : `Unlocked ✅<div class="badge">You can open it</div>`;
-
-          const a = document.createElement('a');
-          a.href = '#';
-          a.className = 'openLink';
-          a.textContent = 'Open';
-          a.addEventListener('click', (e)=>{
-            e.preventDefault();
-            alert(`This is the Feb ${item.day} page placeholder.\nLater we’ll link it to your real page.`);
-          });
-
-          card.appendChild(lock);
-          card.appendChild(title);
-          card.appendChild(status);
-          card.appendChild(a);
-
-        } else if(isNext){
-          lock.textContent = '🔒';
-          card.classList.add('locked');
-          status.innerHTML = `Locked 🔒<div class="badge" data-countdown="1">Available in —</div>`;
-          card.appendChild(lock);
-          card.appendChild(title);
-          card.appendChild(status);
-
+        const file = dayToFile[item.day];
+        if(file){
+          a.href = file;
         } else {
-          lock.textContent = '🔒';
-          card.classList.add('locked');
-          status.innerHTML = `Locked 🔒<div class="badge">Not yet</div>`;
-          card.appendChild(lock);
-          card.appendChild(title);
-          card.appendChild(status);
+          a.href = '#';
+          a.style.opacity = '0.6';
+          a.style.pointerEvents = 'none';
+          a.title = 'Coming soon';
         }
 
-        gridEl.appendChild(card);
+        card.appendChild(lock);
+        card.appendChild(title);
+        card.appendChild(status);
+        card.appendChild(a);
+
+      } else if(isNext){
+        lock.textContent = '🔒';
+        card.classList.add('locked');
+        status.innerHTML = `Locked 🔒<div class="badge" data-countdown="1">Available in —</div>`;
+        card.appendChild(lock);
+        card.appendChild(title);
+        card.appendChild(status);
+
+      } else {
+        lock.textContent = '🔒';
+        card.classList.add('locked');
+        status.innerHTML = `Locked 🔒<div class="badge">Not yet</div>`;
+        card.appendChild(lock);
+        card.appendChild(title);
+        card.appendChild(status);
       }
 
-      updateCountdown();
+      gridEl.appendChild(card);
     }
 
-    function updateCountdown(){
-      const now = nowIST();
-      const year = getWeekYear(now);
-      const week = buildWeekDates(year);
+    updateCountdown();
+  }
 
-      let nearest = null;
-      for(const w of week){
-        if(now < w.date){ nearest = w.date; break; }
-      }
+  function updateCountdown(){
+    const now = nowIST();
+    const year = getWeekYear(now);
+    const week = buildWeekDates(year);
 
-      const badge = weekSection.querySelector('[data-countdown="1"]');
-      if(!badge){
-        if(timer){ clearInterval(timer); timer = null; }
-        return;
-      }
-
-      if(!nearest){
-        badge.textContent = 'Available now ✅';
-        if(timer){ clearInterval(timer); timer = null; }
-        return;
-      }
-
-      const ms = nearest.getTime() - now.getTime();
-      badge.textContent = `Available in ${msToHMS(ms)}`;
-
-      if(ms <= 0){
-        renderWeek();
-      }
+    let nearest = null;
+    for(const w of week){
+      if(now < w.date){ nearest = w.date; break; }
     }
 
-    continueLink.addEventListener('click', (e)=>{
-      e.preventDefault();
-      weekSection.classList.remove('hidden');
+    const badge = weekSection.querySelector('[data-countdown="1"]');
+    if(!badge){
+      if(timer){ clearInterval(timer); timer = null; }
+      return;
+    }
+
+    if(!nearest){
+      badge.textContent = 'Available now ✅';
+      if(timer){ clearInterval(timer); timer = null; }
+      return;
+    }
+
+    const ms = nearest.getTime() - now.getTime();
+    badge.textContent = `Available in ${msToHMS(ms)}`;
+
+    if(ms <= 0){
       renderWeek();
+    }
+  }
 
-      if(timer) clearInterval(timer);
-      timer = setInterval(updateCountdown, 1000);
+  continueLink.addEventListener('click', (e)=>{
+    e.preventDefault();
+    weekSection.classList.remove('hidden');
+    renderWeek();
 
-      setTimeout(()=> weekSection.scrollIntoView({behavior:'smooth', block:'start'}), 120);
-    });
-  </script>
+    if(timer) clearInterval(timer);
+    timer = setInterval(updateCountdown, 1000);
+
+    setTimeout(()=> weekSection.scrollIntoView({behavior:'smooth', block:'start'}), 120);
+  });
+</script>
+
 </body>
 </html>
