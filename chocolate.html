@@ -326,7 +326,6 @@
     .modalSub{ margin:0 0 12px; font-weight: 850; color: rgba(35,18,60,.72); line-height:1.6; }
     .modalRow{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
 
-    /* NEW full-page result view */
     .fullView{
       min-height: 68vh;
       display:flex;
@@ -367,7 +366,6 @@
       min-height: 9em;
     }
 
-    /* Loading dots (fixed) */
     .loading{
       display:inline-flex;
       align-items:center;
@@ -395,7 +393,6 @@
       50%{ transform: translateY(-2px); opacity:.95; }
     }
 
-    /* Typewriter cursor */
     .twCursor{
       display:inline-block;
       width: 10px;
@@ -406,7 +403,6 @@
     }
     @keyframes blink{ 50%{ opacity:0; } }
 
-    /* Emphasis styles used per-line */
     .failBig{
       font-size: clamp(20px, 3vw, 26px);
       font-weight: 980;
@@ -430,7 +426,6 @@
       color: transparent;
     }
 
-    /* Home link bottom center */
     .homeLink{
       position:fixed; left:50%; bottom: 18px;
       transform: translateX(-50%) translateY(12px);
@@ -527,7 +522,7 @@
       <p class="modalSub" id="modalSub">Before you place order… add one for me also.</p>
       <div class="modalRow">
         <button class="btn btnSoft" id="modalNo">No 😭</button>
-        <button class="btn" id="modalYes">Okay add 😌</button>
+        <button class="btn" id="modalYes">Okay 😌</button>
       </div>
     </div>
   </div>
@@ -743,21 +738,23 @@
     ];
 
     const qty = Object.fromEntries(ITEMS.map(i => [i.key, 0]));
-    let meQty = 0;
 
     let ordering = false;
-    let placeSnapshot = null;
-    let firstPlaceLocked = false;
 
+    // NEW: ask-for-me flow (no auto add)
+    let askedForMe = false;
+    let beforeTotal = 0;
+
+    let firstPlaceLocked = false;
     function lockFirstPlaceOrder(){
       if(firstPlaceLocked) return;
       firstPlaceLocked = true;
-      placeOrderRow.classList.add('hidden');   // ✅ hides the first Place Order row
+      placeOrderRow.classList.add('hidden');
       placeOrderBtn.disabled = true;
     }
 
     function totalCart(){
-      let sum = meQty;
+      let sum = 0;
       for(const k in qty) sum += qty[k];
       return sum;
     }
@@ -773,6 +770,7 @@
       });
       confirmOrderBtn.disabled = ordering;
       backToEditBtn.disabled = ordering;
+      placeOrderBtn.disabled = ordering || firstPlaceLocked;
     }
 
     function makeCard(item){
@@ -830,7 +828,6 @@
         const q = qty[it.key];
         if(q > 0) rows.push({ label: `${it.emoji} ${it.name}`, q });
       }
-      if(meQty > 0) rows.push({ label: `😌 One for me`, q: meQty });
 
       if(rows.length === 0){
         sumList.innerHTML = `<li class="sumItem"><span class="sumMuted">Empty cart</span><span class="sumMuted">0</span></li>`;
@@ -904,7 +901,7 @@
       const lines = [
         { text: "Ahhhh… your order is failed. 😭", className:"failBig", delay: 520, speed: 18 },
         { text: "Sorry. Your order cannot be processed. 🚫", className:"warn", delay: 520, speed: 20 },
-        { text: "Reason: You already have the Lotte Choco Pie box 🤨", className:"reason", delay: 520, speed: 18 },
+        { text: "Reason: You already ate the Lotte Choco Pie box I gave you. 🤨", className:"reason", delay: 520, speed: 18 },
         { text: "Payment failed. 💳❌", delay: 520, speed: 22 },
         { text: "Loyalty level: Suspicious. 🕵️‍♀️", delay: 520, speed: 22 },
         { text: "System detected high chocolate greed. 🍫📈", delay: 520, speed: 22 },
@@ -916,37 +913,41 @@
       homeLink.classList.add('show');
     }
 
-    // Place order -> modal "add one"
+    // NEW: Place order flow (no auto add)
     placeOrderBtn.addEventListener('click', ()=>{
       if(ordering) return;
-      placeSnapshot = totalCart();
-      showOverlay("Add one for me too 😌", "Before you place order… add one for me also.");
-    });
 
-    modalNo.addEventListener('click', ()=>{
-      const nowTotal = totalCart();
-      if(nowTotal <= placeSnapshot){
-        showOverlay("No?? 😭", "Nahi… add at least one more. Then we continue.");
-      } else {
-        lockFirstPlaceOrder();   // ✅ hide first Place Order if she already increased cart
-        hideOverlay();
-        goToSummary();
+      // first click: ask her to add one for you
+      if(!askedForMe){
+        beforeTotal = totalCart(); // snapshot BEFORE asking
+        showOverlay("Add one for me too 😌", "Okay 😌 Now add one chocolate for me… then press Place Order again.");
+        return;
       }
+
+      // second click: verify she increased cart
+      const nowTotal = totalCart();
+      if(nowTotal <= beforeTotal){
+        showOverlay("Hawww 😭", "You still didn’t add for me. Add one… then Place Order 😌");
+        return;
+      }
+
+      // she added more ✅
+      hideOverlay();
+      lockFirstPlaceOrder();
+      hint.textContent = "That’s nice 😌";
+      goToSummary();
     });
 
     modalYes.addEventListener('click', ()=>{
-      meQty += 1;
-      updateCartUI();
-
-      lockFirstPlaceOrder();     // ✅ hide first Place Order as soon as she adds for you
-
-      const nowTotal = totalCart();
-      if(nowTotal <= placeSnapshot){
-        showOverlay("Hmm 😌", "Add properly… then we continue.");
-        return;
-      }
+      askedForMe = true;
       hideOverlay();
-      goToSummary();
+      hint.textContent = "Now add one for me 😌 then press Place Order again.";
+    });
+
+    modalNo.addEventListener('click', ()=>{
+      askedForMe = true;
+      hideOverlay();
+      hint.textContent = "Okay… but I still want one 😌 Add it, then Place Order again.";
     });
 
     overlay.addEventListener('click', (e)=>{
